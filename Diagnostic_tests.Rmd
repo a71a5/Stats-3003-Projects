@@ -1,0 +1,70 @@
+---
+title: "Diagnostic Tests"
+author: "Sai Ananthula"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    df_print: paged
+  pdf_document: default
+---
+
+```{r load-packages, message=FALSE}
+library(tidyverse)
+library(openintro)
+PPV <- function(sensitivity=0.95, specificity=0.95, prevalence=0.05) {
+    infected <- prevalence
+  notInfected <- 1 - prevalence
+  truePositive <- sensitivity
+  falsePositive <- 1 - specificity
+  return( truePositive*infected/(truePositive*infected + falsePositive*notInfected) )
+}
+```
+
+
+
+
+
+### Exercise 1
+
+In order for the PPV of breast cancer to be 50% the preveleance has to be atleast 12.5%
+
+```{r}
+prev <- seq(from=0.002, to=0.20, by=0.002)
+OQ.data <- data.frame(prevalence=prev, ppv=PPV(0.87, 0.88, prev))
+ggplot(data=OQ.data, aes(x=prevalence, y=ppv)) +
+  geom_path(color="blue") +
+  geom_hline(yintercept=0.50, color="red", linetype="dotdash") + 
+  labs(title="PPV by prevalence", subtitle="Mammograms") +
+  theme_classic()
+```
+
+### Exercise 2
+The PPV for the ColoGuard test for the general population is .239.
+```{r}
+CG.ppv <- PPV(0.92,0.87,0.0425)
+names(CG.ppv) <- "general ColoGuard PPV"
+CG.ppv
+```
+
+
+
+### Exercise 3 
+In order for the PPV of ColoGuard in the general population to be above 50% the prevalence must be above  12.5%
+```{r}
+prev <- seq(from=0.002, to=0.20, by=0.005)
+CG.data <- data.frame(prevalence=prev, ppv=PPV(0.92, 0.87, prev))
+ggplot(data=CG.data, aes(x=prevalence, y=ppv)) +
+  geom_path(color="blue") +
+  geom_hline(yintercept=0.50, color="green", linetype="dotdash") + 
+  labs(title="PPV by prevalence", subtitle="ColoGuard") +
+  theme_classic()
+```
+
+### Exercise 4
+The PPV is 0.5 so Dr.Ferran is correct about her assumptions about the false positive rate.
+```{r}
+CV.ppv <- PPV(0.95,0.95,.05)
+names(CV.ppv) <- "general Coronavirus PPV"
+CV.ppv
+```
+

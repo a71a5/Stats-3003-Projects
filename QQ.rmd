@@ -1,0 +1,172 @@
+---
+title: "Q-Q Plot Gallery"
+author: "Sai Ananthula"
+date: "10-30-2020"
+output: 
+  html_document:
+    theme: cerulean
+    highlight: tango
+    fig_width: 12
+    fig_height: 5
+---
+
+```{r loadPackages, echo=FALSE, warning=FALSE, message=FALSE}
+library(tidyverse)
+library(gridExtra)
+library(grid)
+library(moments)    # for skewness() and kurtosis()
+library(EnvStats)   # for the Pareto distribution
+NOBS <- 2500 # a constant used to generate data
+```
+
+# INTRODUCTION
+
+Q-Q plots are a graphical test of normality, designed to be easy to interpret. _If the
+transformed data points line up, the data is normally distributed._  However, it's not 
+always easy to tell how much deviation is allowed and still consider the data to be
+(pretty much) normally distributed.  One way to resolve any ambiguity is to use a 
+_hypothesis test_ for normality.  Here the Shapiro-Wilks test is used.  The null hypothesis is that the 
+data is normally distributed, so rejecting the null--with a p-value less than 0.05--indicates the data
+is NOT normally distributed.
+
+<!---
+  This is a function definition.  A function is a "plug in" sub-program that defines
+a task that is performed repeatedly, with different data.  In this case the task is
+calculating the shape statistics skewness and kurtosis, drawing a histogram, performing a
+test of normality, and drawing a Q-Q plot.
+
+DO NOT CHANGE THIS CODE.  A listing of this code definition will appear in the APPENDIX
+section of this report.
+--->
+
+```{r definePlots, echo=FALSE}
+QQplot <- function(df, title) {
+  
+  plot.data <- data.frame(x=df[,1])
+  attach(plot.data)  
+  sk <- skewness(df$x)
+  xk <- EnvStats::kurtosis(df$x)
+  M <- quantile(x, 0.02)
+  detach(plot.data)
+  
+  shape.grob <- grobTree(textGrob(paste("skewness = ", signif(sk,digits=4), "\n",
+                                  "kurtosis = ", signif(xk,digits=4)),
+                                  x=0.1, y=0.95, hjust=0,
+                                  gp=gpar(col="blue", fontsize=14)))
+
+  H <- ggplot(plot.data, aes(x)) +
+    geom_histogram(aes(y=..density..), 
+                 bins=50, 
+                 col="blue", fill="green") +
+    geom_density(col="red") +
+    labs(title=title) +
+    theme_classic() + 
+    annotation_custom(shape.grob)
+  
+  SW <- shapiro.test(plot.data$x)
+  
+  test.grob <- grobTree(textGrob(paste("Shapiro-Wilks Test\n p-value = ",
+                                       signif(SW$p.value, digits=5)),
+                                 x=0.1, y=0.9, hjust=0,
+                                 gp=gpar(col="blue", fontsize=14)))
+  
+  Q <- ggplot(plot.data, aes(sample=x)) +
+    stat_qq() +
+    stat_qq_line(color="blue") +
+    theme_classic() +
+    annotation_custom(test.grob)
+
+  grid.arrange(H,Q, ncol=2, nrow=1)
+#
+# text annotation code described at 
+# http://www.sthda.com/english/wiki/ggplot2-texts-add-text-annotations-to-a-graph-in-r-software
+#
+}
+```
+
+# SYMMETRIC DISTRIBUTIONS
+
+## The Gaussian Distribution 
+
+This is the standard which all other distributions are compared to. No skew and has low kurtosis
+
+<!--- this one's a freebie --->
+```{r}
+gaussian.data <- data.frame(x=rnorm(NOBS, mean=100, sd=10))
+QQplot(gaussian.data, "Gaussian Data")
+```
+
+## T Distribution
+Slightly skewed to the left and the Q-Q plot does not line up fully so the data is possibly not normally distributed. Also, the high kurtosis means there are more likely extreme values. 
+```{r}
+t.data <- data.frame(x=rt(NOBS, df=4))
+QQplot(t.data, "T Data")
+```
+
+## Uniform Distribution
+I would say the data exhibits extremely low kurtosis since the data is uniformly distributed and there seems to be no skew once again due to the nearly uniform distribution.Also, the it has a very low Shapiro-Wilks test score which signals that the distribution is not normal. 
+```{r}
+uniform.data <- data.frame(x=runif(NOBS))
+QQplot(uniform.data, "Uniform Data")
+```
+
+
+## U-Shaped Beta Distribution
+The data is slightly skewed to the right and has a negative kurtosis due to the distribution. It also has a low S-w score since it is not a normal distribution. 
+```{r}
+u.data <- data.frame(x=rbeta(NOBS, shape1=0.5, shape2=0.5))
+QQplot(u.data, "U-shaped Beta Data")
+```
+# ASYMMETRIC DISTRIBUTIONS
+
+## Pareto Distribution
+
+The data is heavily skewed right and has an extraordinarily high kurtosis. It also has an extremely low S-W score since the distribution is not remotely close to normal. 
+```{r}
+pareto.data <- data.frame(x=rpareto(NOBS, location=2, shape=10))
+QQplot(pareto.data, "Pareto Data")
+```
+
+## Gamma Distribution
+The distribution is right skewed and has a relatively low kurtosis value. It also is not a normal distribution due to its very low S-W score. 
+```{r}
+gamma.data <- data.frame(x=rgamma(NOBS, shape=3, rate=1))
+QQplot(gamma.data, "Gamma Data")
+```
+
+## Left-Skewed Beta Distribution
+The distribution is skewed to the left and exhibits low kurtosis. It also is not a normal distribution since the S-W score is very low. 
+```{r}
+left.data <- data.frame(x=rbeta(NOBS, shape1=18, shape2=2))
+QQplot(left.data, "Left-Skewed beta Data")
+```
+
+
+# BIMODAL DISTRIBUTIONS
+
+## Mixture of Two Gaussian Distributions
+The data has very slight skew to the right and has a negative kurtosis value despite 1 of the peaks being very pointed since there are 2 clusters of data. It also has a low S-W score showing that it is not a normal distribution. 
+```{r}
+bimodal.data <- data.frame(x=c(rnorm(NOBS/2, mean=20, sd=5), rnorm(NOBS/2, mean=60, sd=10)))
+QQplot(bimodal.data, "Bidmodal Data")
+```
+
+# OBSERVATIONS
+
+As the skewness score rises the distrubiton becomes ever more right skewed and an example of this is the Pareto Distribution with a skewness score of 16.4 vs the Left-Skewed Beta distribution with a skewness score of -1.159.
+
+The lower the kurtosis score the normal certain distributions are but it isn't always true. As kurtosis rises the Shapiro-Wilks score decreases since the lines are less likely to match up so distributions witch low kurtosis and skew are more likely to line up. 
+
+As the bimodal has the two distinct groups of data it throws everything off since most distributions have 1 cluster of data. This results in a very low S-W score plus the fact there are 2 humps results in a very flat curve despite 1 hump exhibits much higher pointedness. 
+
+# APPENDIX
+
+These packages are used in this report:
+
+```{r loadPackages, eval=FALSE}
+```
+
+This is the function definition for **QQplot()**:
+
+```{r definePlots, eval=FALSE}
+```

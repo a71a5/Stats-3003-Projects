@@ -1,0 +1,284 @@
+---
+title: "Simple Regression"
+author: "Sai Ananthula"
+date: "`r Sys.Date()`"
+output: openintro::lab_report
+---
+
+```{r load-packages, message=FALSE}
+library(tidyverse)
+library(openintro)
+library(lmtest)
+```
+
+### Exercise 1
+
+What are the dimensions of the dataset? Hint: try dim(bac)
+
+```{r code-chunk-label}
+dim(bac)
+```
+
+### Exercise 2
+
+What type of plot would you use to display the relationship between the number of beers consumed, beers, and the blood alcohol content, bac?
+
+Scatterplot with a line of best fit if there is a strong relationship.
+...
+
+
+### Exercise 3
+
+Plot this relationship using the variable beers as the predictor. Does the relationship look linear? If you knew how many cans of beer a person had consumed, would you feel confident that you could predict their blood alcohol content?
+
+
+Yes, I would feel confident in predicting a person's BAC based on how many beers they had. There seems to be a postive and strong relationship between beer consumed and BAC. 
+```{r}
+ggplot(bac, aes(x=beers, y=bac)) +
+  geom_point(size=1.5) +
+  labs(title="Beers and BAC") +
+  xlab("beers") +
+  ylab("BAC")
+```
+
+### Exercise 4
+
+If the relationship looks linear, we can quantify the strength of the relationship with the correlation coefficient, R-squared (r2).
+
+The correlation coefficient is close to 1 so that means the relationship is strong and positive.
+
+```{r}
+bac %>%
+  summarise(cor(beers, bac))
+```
+
+### Exercise 5
+
+Fit a new, “backwards” model that uses bac to predict beers, the mean number of beers and individual has consumed.
+
+y = 1.5288 + 44.5252 x beers
+
+```{r}
+
+summary(
+   BACvsBeers.model <- lm(bac ~ beers, data = bac)  
+)
+
+summary(
+  beers.model <- lm(beers ~ bac, data=bac)
+)
+```
+
+### Exercise 6
+
+Is there any apparent pattern in the residuals plot? What does this indicate about the linearity of the relationship between the two variables?
+
+There could be somewhat of a pattern however one of the residuals is much higher than it should be. You can however still infer there is a relationship between the two variables.
+
+```{r}
+ggplot(data = BACvsBeers.model, aes(x = .fitted, y = .resid)) +
+  geom_point() +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  geom_smooth() +
+  xlab("Fitted values") +
+  ylab("Residuals")
+```
+
+### Exercise 7
+
+Based on the normal probability plot and Shaprio-Wilk test, does the nearly normal residuals condition appear to be met?
+
+Yes, the sample points are very close to the line of best fit.
+```{r}
+
+ggplot(data = BACvsBeers.model, aes(sample = .resid)) +
+  stat_qq() +
+  stat_qq_line()
+
+shapiro.test(BACvsBeers.model$resid)
+
+
+```
+
+### Exercise 8
+
+Based on the residuals vs. fitted plot, does the constant variability condition appear to be met?
+
+Mostly however there is one outlier but I would say the variability condition is still met.
+
+```{r}
+
+ggplot(data = BACvsBeers.model, aes(x = .fitted, y = .resid^2)) +
+  geom_point() +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  xlab("Fitted values") +
+  ylab("Squared Residuals")
+
+```
+
+
+### Exercise 9
+
+If someone saw the least squares regression line and not the actual data, how would they predict an individual’s blood alcohol content, knowing they had consumed 3 beers? Is this an overestimate or an underestimate, and by how much? In other words, what is the residual for this prediction?
+
+By looking at the point on the line where beers = 3 and using that as a starting point but they would have to account for standard error. It could be either since there is standard error on both sides of the line of best fit. The second code block says the line of best fit is at (3,0.044) but the lowest could be -0.0049 or the highest 0.087 when accounting for standard error. 
+
+```{r}
+
+ggplot(data = bac, aes(x = beers, y =bac)) +
+  geom_point() +
+  stat_smooth(method = "lm", se = TRUE)
+
+FITS <- predict(BACvsBeers.model, newdata=data.frame(beers=c(3,4,5)), 
+        se.fit=TRUE, interval="prediction")
+FITS$fit
+
+```
+
+
+
+### Exercise 10
+
+The predict() function lets us apply the model to generate point and interval predictions. What is the interval estimate for a person (OK, frat boy) who has consumed 3, 4, or 5 beers?
+
+3 = -.00495 to 0.08736
+
+4 = .01377 to .10454
+
+5 = .03192 to 0.12232
+
+```{r}
+
+FITS <- predict(BACvsBeers.model, newdata=data.frame(beers=c(3,4,5)), 
+        se.fit=TRUE, interval="prediction")
+FITS$fit
+
+```
+
+
+
+### Exercise 11
+
+The legal limit for a Texas driver’s BAC is 0.08. How many beers before you’re risking a DUI?
+
+
+4 to 5 beers would put you over the legal limit depending on 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

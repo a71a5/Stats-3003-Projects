@@ -1,0 +1,56 @@
+---
+title: "Lab Name"
+author: "Author Name"
+date: "`r Sys.Date()`"
+output: openintro::lab_report
+---
+
+```{r load-packages, message=FALSE}
+library(tidyverse)
+library(openintro)
+```
+
+### Exercise 1
+
+
+cv <- function(Xvector, theName="coefficient of variation"){
+  cd <- sd(Xvector) / mean(Xvector)
+  names(cd) <- theName
+  return(cd)
+
+
+}
+
+
+
+### Exercise 2
+
+cv(LakeHuron)
+
+### Exercise 3
+
+sample1 <- cv(runif(100,min=0,max=1))
+sample2 <- cv(runif(100,min=0,max=10))
+
+sample3 <- sample1 / sample2 
+print("ratio of uniform random samples")
+print(sample3)
+
+###### Exercise 4
+
+sample1 <- cv(rnorm(100,mean=10.sd=2)
+sample2 <- cv(rnorm(100,mean=5,sd=2))
+
+sample3 <- sample1 / sample2 
+print("ratio of Gaussian random samples")
+print(sample3)
+
+
+### Excercise 5
+
+sample1 <- cv(rgamma(100,shape=3, rate=1))
+sample2 <- cv(rgamma(100,shape=6,rate=1))
+
+sample3 <- sample1 / sample2 
+print("ratio of gamma random samples")
+print(sample3)

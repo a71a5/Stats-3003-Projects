@@ -1,0 +1,59 @@
+---
+title: "A Test of Dispersion"
+author: "Sai Ananthula"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r load-packages, message=FALSE}
+library(tidyverse)
+library(openintro)
+
+IndexOfDispersion <- function(X) {
+  return( var(X)/mean(X) )
+}
+
+DispersionTest <- function(X, alpha=0.05) {
+  df <- length(X) - 1
+  T <- df*IndexOfDispersion(X)
+  lower <- qchisq(alpha/2, df)
+  upper <- qchisq(1-alpha/2, df)
+  if (T < lower) return('underdispersed') else
+    if (T > upper) return("overdispersed") else
+      return("equidispersed")
+}
+```
+
+### Exercise 1
+
+The index of dispersion is 1.001565 so it extremely close to being normally distributed. 
+
+```{r}
+kick.data <- read.table("http://tinyurl.com/ycnbeus9", header=TRUE) # Bortkewicz' horse-kick data
+IndexOfDispersion(kick.data$deaths)
+```
+
+### Exercise 2
+The data is equidispered. 
+```{r}
+kick.data <- read.table("http://tinyurl.com/ycnbeus9", header=TRUE) # Bortkewicz' horse-kick data
+DispersionTest(kick.data$deaths)
+```
+
+### Exercise 3
+The index of dispersion is 1.31257 which is overdispersed.
+```{r}
+site.data <- read.table("http://tinyurl.com/yct6wsvl", header=TRUE) # salmon nest digging
+IndexOfDispersion(site.data$sites)
+```
+### Exercise 4 
+The sites are overdispersed which indicates the female pink salmon prefer to be far away from each other when choosing spawning sites. 
+```{r}
+site.data <- read.table("http://tinyurl.com/yct6wsvl", header=TRUE) # salmon nest digging
+DispersionTest(site.data$sites)
+```
+
+...
+

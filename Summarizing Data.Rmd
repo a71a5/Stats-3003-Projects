@@ -1,0 +1,128 @@
+---
+title: "Summarizing Data"
+author: "Sai Ananthula"
+date: "`r Sys.Date()`"
+output: openintro::lab_report
+---
+
+```{r setup, include FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(dplyr)
+library(ggplot2)
+library(tidyverse)
+library(openintro)
+data(nycflights)
+```
+
+### Exercise 1
+
+Most flights are on time but there are certain flights that are late and this is evident in the histogram with the bin width of 15. 
+
+```{r code-chunk-label}
+
+ggplot(data = nycflights, aes(x = dep_delay)) +
+  geom_histogram()
+
+ggplot(data = nycflights, aes(x = dep_delay)) +
+  geom_histogram(binwidth = 15)
+
+ggplot(data = nycflights, aes(x = dep_delay)) +
+  geom_histogram(binwidth = 150)
+
+```
+
+### Exercise 2
+
+68 flight to SFO in February
+
+```{r}
+sfo_feb_flights <- nycflights %>%
+  filter(dest == "SFO",month == 2)
+
+dim(sfo_feb_flights)
+
+```
+
+
+
+### Exercise 3
+
+Most of the flight to SFO are on time and there actually enough flights that arrive early enough to SFO that the median is -2 (minutes) for February. 
+
+```{r}
+
+ggplot(data=sfo_feb_flights, aes(x=dep_delay)) +
+  geom_histogram(binwidth = 5)
+
+sfo_feb_flights %>%
+  summarise(median_dd = median(dep_delay),
+            n         =n())
+ 
+
+```
+
+### Excercise 4
+
+AA has a very varied timeframe for arrival delays as their IQR is 32.8 which is double the next highest.
+```{r}
+sfo_feb_flights %>%
+  group_by(carrier) %>%
+  summarise(median_dd = median(dep_delay),
+            iqr_dd = IQR(dep_delay),
+            n_flights =n()) %>%
+  print.data.frame(.,digits=2)
+```
+###  Exercise 5
+The reason for factor is the categorize the data and make it easier to understand. The histogram below is simple and east to read. 
+```{r}
+nycflights %>%
+  group_by(month) %>%
+  ggplot(., aes(x=factor(month), y=dep_delay, fill=factor(month)) ) +
+    geom_boxplot(outlier.colo="blue", outlier.size=2) +
+    theme_dark()
+```
+
+### Exercise 6
+The difference for choosing between mean and median when looking at what month to leave NYC comes down to consistency. A month with the lower mean is more likely to have a consistent departure time since the mean is the the average of all data in a set. This is in contrast to the median which is the middle value so this could be affected by a couple very late flights causing the median to shift to a worse delay departure or vice versa if flight leave early. It really comes down to whether want consistency and in most cases the months with a low mean delay departure time see like a good time to leave New York. 
+
+### Exercise 7
+I would fly out of LGA since its on time departure rate is the highest out of the three. 
+
+```{r}
+
+nycflights <- nycflights %>%
+  mutate(dep_type = ifelse(dep_delay < 5, "on time", "delayed"))
+
+nycflights %>%
+  group_by(origin) %>%
+  summarise(ot_dep_rate = sum(dep_type == "on time") / n()) %>%
+  arrange(desc(ot_dep_rate)) %>%
+  print.data.frame(., digits=3)
+
+```
+
+### Exercise 8
+Airplane velocity seem to increase in a way similar to a logarithmic function but it level off around 1900/2000 miles but does increase for extremely long trips at the 5000+ mile range. There does seem to be some form of correlation between distance of a flight and the speed of the airplane howver data on flights between 2600 and 5000 miles is needed since the data set has very little so a solid conclusion cannot be drawn. 
+
+```{r}
+nycflights <- nycflights %>%
+  mutate(avg_speed = distance / (air_time/60))
+
+
+ggplot(nycflights, aes(x=distance,avg_speed)) + geom_point() + 
+  labs(title = "Speed vs Distance")
+```
+
+### Exercise 9
+I Would say about 50 minutes assuming dep_delay is in minutes because it seems like you still get to your destination in time. 
+```{r}
+
+nycflights$carrier  <- as.factor(nycflights$carrier)
+
+nycflights %>% 
+  filter(carrier == "AA" | carrier == "DL" | carrier == "UA") %>%
+ggplot(aes(x = dep_delay, arr_delay ,color = carrier)) + geom_point()
+
+
+```
+
